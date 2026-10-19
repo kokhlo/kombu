@@ -298,6 +298,19 @@ class test_Channel:
 
         assert c.get_table('e') == [('k', None, 'q2')]
 
+    def test_queue_delete_redeclare_rebind_keeps_single_entry(self):
+        c = memory_client().channel()
+        c.exchange_declare('e', 'direct')
+        c.queue_declare('q')
+        c.queue_bind('q', 'e', 'k')
+
+        c.queue_delete('q')
+        c.queue_declare('q')
+        c.queue_bind('q', 'e', 'k')
+
+        assert c.get_table('e') == [('k', None, 'q')]
+        assert list(c.list_bindings()) == [('q', 'e', 'k')]
+
     def test_exchange_delete__deletes_all_bound_queues(self):
         c = self.channel
         c._delete = Mock(name='_delete')
